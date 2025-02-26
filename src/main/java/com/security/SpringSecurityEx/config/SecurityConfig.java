@@ -17,6 +17,8 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
+// This class is used to configure Spring Security
+// It is annotated with @Configuration to indicate that it is a Spring configuration class
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -52,6 +54,8 @@ public class SecurityConfig {
         return http.build();
     }
 
+    //AuthenticationProvider is an interface that provides authentication logic
+    //DaoAuthenticationProvider is an implementation of AuthenticationProvider
     @Bean
     public AuthenticationProvider authenticationProvider() {
 
