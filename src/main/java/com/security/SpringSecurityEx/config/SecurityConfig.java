@@ -13,6 +13,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
@@ -37,7 +38,13 @@ public class SecurityConfig {
         http.csrf(customizer -> customizer.disable()); 
         
         // Requires authentication for all HTTP requests. No public endpoints are allowed.
-        http.authorizeHttpRequests(request -> request.anyRequest().authenticated()); 
+        // http.authorizeHttpRequests(request -> request.anyRequest().authenticated()); 
+        
+        // Configura as regras de autorização
+        http.authorizeHttpRequests(request -> request
+            .requestMatchers("/register").permitAll() // Permite acesso ao endpoint /register sem autenticação
+            .anyRequest().authenticated() // Requer autenticação para qualquer outro endpoint
+        );
         
         // Enables form-based login with default settings. 
         // If removed, the browser will trigger a basic authentication popup.
@@ -61,7 +68,12 @@ public class SecurityConfig {
 
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
 
-        provider.setPasswordEncoder(NoOpPasswordEncoder.getInstance());
+        // Sets the custom UserDetailsService to be used by the DaoAuthenticationProvider
+        // provider.setPasswordEncoder(NoOpPasswordEncoder.getInstance());
+
+        // Sets the custom UserDetailsService to be used by the DaoAuthenticationProvider
+        // But this time, we are using a BCryptPasswordEncoder to encrypt passwords
+        provider.setPasswordEncoder(new BCryptPasswordEncoder(12));
         provider.setUserDetailsService(userDetailsService);
         return provider;
     }
