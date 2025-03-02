@@ -1,0 +1,32 @@
+----------- JWT config ----------------
+
+1 - Make Spring security work getting data from database:
+
+Classes needed: 
+
+SecurityConfig
+UserPrincipal
+User and UserRepository
+MyUserDetailsService
+
+Order:
+SecurityConfig > MyUserDetailsService > User > UserRepository > UserPrincipal
+
+2 - Get the artifacts to Maven (jjwt-api / jjwt-impl / jjwt-jackson)
+
+Criar o bean "AuthenticationProvider" in the securityConfig
+
+implement /login endpoint and in the service create the verify method implementing the authenticationManager and JWTService (which has to be created)
+
+3 - Create JWT Service class and implement the methods:
+
+--------------------------------------------------------------
+
+------------- Validate a token -------------------------------
+
+1 - Add a filter before user and password filter (securityConfig) editing the SecurityFilterChain mathod
+
+2 - create the JWTFilter
+
+3 - Implemente in the service the methods to extract username and Validate token
+

@@ -3,9 +3,11 @@ package com.security.SpringSecurityEx.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
@@ -17,6 +19,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.security.SpringSecurityEx.filter.JWTFilter;
 
 // This class is used to configure Spring Security
 // It is annotated with @Configuration to indicate that it is a Spring configuration class
@@ -26,9 +31,11 @@ public class SecurityConfig {
 
     
     private UserDetailsService userDetailsService;
+    private JWTFilter jwtFilter;
 
-    public SecurityConfig(UserDetailsService userDetailsService) {
+    public SecurityConfig(UserDetailsService userDetailsService, JWTFilter jwtFilter) {
         this.userDetailsService = userDetailsService;
+        this.jwtFilter = jwtFilter;
     }
 
     @Bean // Marks this method as a Spring bean, meaning Spring will manage its lifecycle
@@ -37,18 +44,11 @@ public class SecurityConfig {
         // Disables CSRF protection. Useful for stateless APIs but should be used with caution.
         http.csrf(customizer -> customizer.disable()); 
         
-        // Requires authentication for all HTTP requests. No public endpoints are allowed.
-        // http.authorizeHttpRequests(request -> request.anyRequest().authenticated()); 
-        
         // Configura as regras de autorização
         http.authorizeHttpRequests(request -> request
-            .requestMatchers("/register").permitAll() // Permite acesso ao endpoint /register sem autenticação
+            .requestMatchers("/register","/login").permitAll() // Permite acesso ao endpoint /register sem autenticação
             .anyRequest().authenticated() // Requer autenticação para qualquer outro endpoint
         );
-        
-        // Enables form-based login with default settings. 
-        // If removed, the browser will trigger a basic authentication popup.
-        http.formLogin(Customizer.withDefaults());
         
         // Enables HTTP Basic authentication, allowing clients to authenticate via an Authorization header.
         http.httpBasic(Customizer.withDefaults());
@@ -56,7 +56,9 @@ public class SecurityConfig {
         // Configures session management to be stateless. 
         // This is ideal for APIs where each request should be authenticated independently.
         http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-    
+        
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
         // Builds and returns the configured SecurityFilterChain.
         return http.build();
     }
@@ -66,6 +68,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationProvider authenticationProvider() {
 
+        // Creates a new DaoAuthenticationProvider, which is an implementation of AuthenticationProvider
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
 
         // Sets the custom UserDetailsService to be used by the DaoAuthenticationProvider
@@ -76,6 +79,11 @@ public class SecurityConfig {
         provider.setPasswordEncoder(new BCryptPasswordEncoder(12));
         provider.setUserDetailsService(userDetailsService);
         return provider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception{
+        return config.getAuthenticationManager();
     }
 
     // @Bean

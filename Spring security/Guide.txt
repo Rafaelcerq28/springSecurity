@@ -1,0 +1,12 @@
+To make Spring security work getting data from database:Spring
+
+Classes needed: 
+
+SecurityConfig
+UserPrincipal
+User and UserRepository
+MyUserDetailsService
+
+
+Order:
+SecurityConfig>MyUserDetailsService>User>UserRepository>UserPrincipal
